@@ -1,0 +1,51 @@
+
+
+
+
+Tam adım adım tarif ediyorum. Meta App Review panelde yapılır, kodla ilgisi yok — şu adımları izleyin:
+
+1. App Dashboard'a girin
+
+- https://developers.facebook.com/apps açın
+- Hesabınıza giriş yapın → NOVA MONDİ HOME uygulamasını seçin (App ID: 2263259087568024)
+
+2. Ön şart: Gizlilik Politikası URL'si
+
+App Review başvurusu bunu ister, önce bu olmalı:
+- Sol menü → App settings (Uygulama Ayarları) → Basic sekmesi
+- Privacy Policy URL alanına bir link girin. Elinizde yoksa en hızlı yol: basiseniz ben size bir gizlilik politika sayfası HTML'i yazarım, Vercel'ehttps://mondi-otomasyon.vercel.app/gizlilik olarak deploy ederiz)
+- Aynı sayfada App Icon ve Category (ör. Business) dolu olmalı — yoksa dolduru
+
+3. App Review başvurusu
+
+- Sol menüde App Review → Permissions and Features sekmesi
+- Arama kutusuna pages_messaging yazın
+- Satırda iki sütun görürsünüz: Standard Access (onaylı, yeşil) ve Advanced Ac
+- pages_messaging satırındaki Request Advanced Access butonuna basın
+- Instagram DM'leri de açılacaksa aynı şekilde instagram_manage_messages için
+- Açılan pencerede kullanım açıklaması isterse şunu yazabilirsiniz:
+
+▎ "Mondi Home mobilya mağazasının Facebook sayfasına (NOVA MONDİ HOME) reklamlardan gelen Messenger mesajlarını 7/24 otomatik yanıtlamak için kullanıyoruz. Bot ürün fiyatı/ödeme/ölçü
+▎ sorularını cevaplıyor, karmaşık soruları canlı temsilciye aktarıyor."
+
+- Submit for Review → onaylayın
+
+4. Business Verification istenirse
+
+Meta bazen onay öncesi Business Verification ister. İsterse:
+- https://business.facebook.com/settings → Business info → firma belgeleri (vergi levhası vb.) ile doğrulama yapın
+- Bu adım gelmezse atlayın
+
+5. Onay sonrası: App Mode'u Live'a alın
+
+- App dashboard'da en üstte bir toggle görürsünüz: App Mode: Development / Liv
+- App Review onaylanana kadar bu toggle gri/etkisizdir; onay gelince Live'a çekin
+- Onay genelde 1-3 gün (bazen 5+) sürer ve bu panelde "Approved/Rejected" bild
+
+---
+
+Önemli notlar:
+- Onay gelene kadar bot zaten çalışıyor ama yalnızca app'e admin/developer/tester rolü olan hesaplara cevap veriyor — bu kodla aşılamaz, Meta'nın kuralı
+- Onay + Live mod sonrası hiçbir kod değişikliği gerekmez; webhook aynı çalışm müşteriler de yanıt almaya başlar
+- Başvurunun durumunu App Review → Permissions and Features sayfasında "In review / Approved" yazısından takip edebilirsiniz                                                             
+Şimdi siz panel işlemlerine başlarken, ben kod tarafını güncelleyeyim mi? (Gizlilik politikası sayfası + boş [telefon numarası]/[saatler] yer tutucuları + fiyat verisi olmayan ürünlere daha iyi yanıtlar). Telefon numarası ve çalışma saatlerini de paylaşırsanız hem.

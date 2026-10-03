@@ -1,0 +1,18 @@
+{
+  "name": "mondi-otomasyon",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Mondi Home — Messenger/Instagram DM AI otomatik yanıtlama sistemi",
+  "type": "module",
+  "scripts": {
+    "build:products": "node scripts/build-products.mjs",
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "vercel": "^39.4.2"
+  }
+}
