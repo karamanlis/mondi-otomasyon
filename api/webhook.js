@@ -4,7 +4,7 @@
 import { env } from "./env.js";
 import { verifySignature, sendMessage } from "../lib/meta.js";
 import { detectIntent, getAnswer, getWhatsAppRedirect } from "../lib/answers.js";
-import { resolveProduct, findProduct, getProductCard, getAmbiguityQuestion } from "../lib/catalog.js";
+import { resolveProduct, findProduct, isKonseptProduct, getProductCard, getAmbiguityQuestion } from "../lib/catalog.js";
 import { askAI } from "../lib/ai.js";
 import { getUserState, setUserState } from "../lib/state.js";
 import { notifyAgent } from "../lib/telegram.js";
@@ -128,6 +128,18 @@ async function handleMessage(senderId, text, referralRef) {
 
   // 3) Detect intent + rule-based answer
   let intent = detectIntent(text);
+
+  // İŞ KURALI (2026-10-11): Konsept ürünü (Rosita/Olivia Konsept — adı "konsept" içeren
+  // her ürün) hakkında selamlama dışındaki TÜM sorular canlı temsilciye yönlendirilir.
+  // Bot fiyat/içerik/detay vermez; Telegram'a da temsilci bildirimi düşer.
+  if (intent !== "greeting" && isKonseptProduct(product)) {
+    const redir = getWhatsAppRedirect();
+    await sendMessage(senderId, redir);
+    await saveState(senderId, state, lastAdCode, history, text, redir, { currentProductCode, pendingBrand });
+    await notifyAgent("Konsept ürünü sorusu → canlı temsilci", senderId, text, product?.adName);
+    return;
+  }
+
   // "modelini beğendim" tipi mesajlar ölçü sorusu SAYILMAZ → ürün kartına düşsün
   if (textProduct && intent === "dimensions" && !/ölç|boyut|ebat|cm\b|santim|geniş/i.test(text)) {
     intent = "other";

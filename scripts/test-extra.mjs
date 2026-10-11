@@ -87,17 +87,27 @@ for (const [id, txt] of [["greet", "selam"], ["agent", "yetkili ile konuşmak is
 }
 if (allGood) console.log("11. Tek yanıt ✅");
 
-// 12. Olivia Konsept detay sorulduğunda içerik listesi dönsün (reklamdan gelen)
+// 12. İŞ KURALI: Olivia Konsept hakkındaki sorular → canlı temsilci (liste/fiyat YOK)
 r = await simulate("u_olivia", "detayları neler?", "52559464364256");
-const oliviaOk = r.length === 1 && r[0].includes("Gardrop") && r[0].includes("Berjer") && r[0].includes("Makyaj Masası") && !r[0].includes("WhatsApp") && !r[0].includes("yönlendir");
-console.log("12. Olivia Konsept detay:", oliviaOk ? "✅" : `❌ ${JSON.stringify(r)}`);
+const oliviaOk = r.length === 1 && r[0].includes("0553 923 29 11") && !r[0].includes("Gardrop") && !r[0].includes("299.950");
+console.log("12. Olivia Konsept detay → temsilci:", oliviaOk ? "✅" : `❌ ${JSON.stringify(r)}`);
 
-// 13. Rosita Konsept — metinde adı geçiyor (referralsız)
+// 12b. Konsept reklamından gelen FİYAT sorusu da temsilciye (fiyat sızmasın)
+r = await simulate("u_olivia_fiyat", "fiyatı ne kadar?", "52559464364256");
+const oliviaFiyatOk = r.length === 1 && r[0].includes("0553 923 29 11") && !r[0].includes("299.950");
+console.log("12b. Olivia Konsept fiyat → temsilci:", oliviaFiyatOk ? "✅" : `❌ ${JSON.stringify(r)}`);
+
+// 13. Rosita Konsept — metinde adı geçiyor (referralsız) → temsilci
 r = await simulate("u_rosita", "rosita konsept içinde neler var?");
-const rositaOk = r.length === 1 && r[0].includes("Gardırop") && r[0].includes("Berjer") && r[0].includes("Baza") && !r[0].includes("WhatsApp");
-console.log("13. Rosita Konsept içerik:", rositaOk ? "✅" : `❌ ${JSON.stringify(r)}`);
+const rositaOk = r.length === 1 && r[0].includes("0553 923 29 11") && !r[0].includes("Gardırop");
+console.log("13. Rosita Konsept içerik → temsilci:", rositaOk ? "✅" : `❌ ${JSON.stringify(r)}`);
 
-// 14. Olivia Koltuk takımına konsept detayı sorulursa → konsept içeriği değil → AI/fallback (konsept değil)
+// 13b. Karşılama istisna: konsept reklamından gelip sadece "merhaba" yazan boş çevrilmez
+r = await simulate("u_olivia_greet", "merhaba", "52559464364256");
+const greetOk = r.length === 1 && r[0].includes("Mondihome'a hoş geldiniz");
+console.log("13b. Konsept bağlamında selamlama serbest:", greetOk ? "✅" : `❌ ${JSON.stringify(r)}`);
+
+// 14. Olivia Koltuk takımına içerik sorulursa → konsept listesi ASLA sızmaz (konsept intent → yönlendirme)
 r = await simulate("u_olivia_koltuk", "detay nedir?", "52559469930656");
 const olivKoltOk = r.length === 1 && !r[0].includes("Berjer");
 console.log("14. Olivia Koltuk takımı (konsept değil):", olivKoltOk ? "✅" : `❌ ${JSON.stringify(r)}`);

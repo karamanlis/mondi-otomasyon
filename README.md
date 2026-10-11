@@ -9,6 +9,7 @@ Meta Business Manager reklamlarından gelen **Messenger ve Instagram DM** mesajl
 
 - ✅ Excel'deki ürün verisine göre **fiyat, ödeme, ölçü, adres** sorularını anında yanıtlar
 - ✅ Müşterinin yazdığı **ürün adını metinden tanır** ("rosita koltuk" = "Rosita koltuk takımı"); reklam bağlamından bağımsız doğru ürünü cevaplar, belirsiz isimde netleştirme sorar (`lib/catalog.js`)
+- ✅ **İş kuralı:** Konsept ürünler (adında "konsept" geçen — Rosita/Olivia Konsept) hakkında hiçbir soruyu bot cevaplamaz; fiyat/içerik gösterilmez, doğrudan **canlı temsilciye** yönlendirir + Telegram bildirimi gider (istisna: selamlama)
 - ✅ Fiyat listesi ve AI prompt'u **tek kaynaktan** (products.json) üretilir — veri/cevap uyumsuzluğu oluşmaz
 - ✅ Bilinmeyen soruları **Deepseek AI** (OpenRouter) ile anlayıp yanıtlar
 - ✅ Fiyatı "canlı temsilci" olan ürünler için otomatik yönlendirme
