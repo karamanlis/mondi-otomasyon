@@ -70,7 +70,7 @@ console.log("9. Baza:", r.length === 1 && r[0].includes("28.500") ? "✅" : `❌
 
 // 9b. Ödeme sorusu → temsilci yönlendirme
 r = await simulate("u_pay", "taksit yapıyor musunuz?");
-console.log("9b. Ödeme:", r.length === 1 && r[0].includes("müşteri temsilcimize") ? "✅" : `❌ ${JSON.stringify(r)}`);
+console.log("9b. Ödeme:", r.length === 1 && r[0].includes("canlı temsilcimize") ? "✅" : `❌ ${JSON.stringify(r)}`);
 
 // 10. Dedup
 await simulate("u_dup", "fiyat nedir?", "52559403956656");

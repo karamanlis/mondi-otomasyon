@@ -4,6 +4,7 @@
 import { env } from "./env.js";
 import { verifySignature, sendMessage } from "../lib/meta.js";
 import { detectIntent, getAnswer, getWhatsAppRedirect } from "../lib/answers.js";
+import { resolveProduct, findProduct, getProductCard, getAmbiguityQuestion } from "../lib/catalog.js";
 import { askAI } from "../lib/ai.js";
 import { getUserState, setUserState } from "../lib/state.js";
 import { notifyAgent } from "../lib/telegram.js";
@@ -95,44 +96,76 @@ async function handleMessage(senderId, text, referralRef) {
   let history = state.history || [];
 
   // If referral comes with this message, update lastAdCode
+  let currentProductCode = state.currentProductCode || null;
+  let pendingBrand = state.pendingBrand || null;
   if (referralRef && products[referralRef]) {
     lastAdCode = referralRef;
+    currentProductCode = referralRef; // yeni reklam = yeni ürün bağlamı
+    pendingBrand = null;
     history = []; // new product → fresh context (ad click)
   }
 
-  // Determine current product
-  const product = lastAdCode ? products[lastAdCode] : null;
+  // 1) Ürün bağlamı: metinde adı geçen ürün > önceki turun ürünü > reklam ürünü
+  const { product: textProduct, ambiguous } = resolveProduct(text, { pendingBrand });
+  const contextProduct = findProduct(currentProductCode || lastAdCode);
 
-  // Detect intent + rule-based answer
-  const intent = detectIntent(text);
-  const answer = getAnswer(intent, product, text);
+  // "rosita" tek başına belirsiz ama oturumda zaten o markanın bir ürünü konuşuluyor → boşuna sorma;
+  // markasız devam sorusu ("fiyatı ne kadar") gibi muamele görür, bağlam ürünü kullanılır.
+  const askBrand = ambiguous && contextProduct?.brand !== ambiguous.brand;
+
+  if (askBrand) {
+    // 2) Gerçekten belirsiz → hangisini kastediyorsun, netleştir
+    const q = getAmbiguityQuestion(ambiguous);
+    pendingBrand = ambiguous.brand;
+    await sendMessage(senderId, q);
+    await saveState(senderId, state, lastAdCode, history, text, q, { currentProductCode, pendingBrand });
+    return;
+  }
+  pendingBrand = null;
+
+  const product = textProduct || contextProduct;
+  if (textProduct) currentProductCode = textProduct.adCode;
+
+  // 3) Detect intent + rule-based answer
+  let intent = detectIntent(text);
+  // "modelini beğendim" tipi mesajlar ölçü sorusu SAYILMAZ → ürün kartına düşsün
+  if (textProduct && intent === "dimensions" && !/ölç|boyut|ebat|cm\b|santim|geniş/i.test(text)) {
+    intent = "other";
+  }
+  let answer = getAnswer(intent, product, text);
+
+  // 4) "other": metinde ürün geçiyorsa kısa ürün kartı (eski davranış: direkt WhatsApp'a kaçış)
+  if (!answer && intent === "other" && textProduct) answer = getProductCard(textProduct);
 
   if (answer) {
     await sendMessage(senderId, answer);
-    await saveState(senderId, state, lastAdCode, history, text, answer);
+    await saveState(senderId, state, lastAdCode, history, text, answer, { currentProductCode, pendingBrand });
     if (intent === "liveAgent") {
       await notifyAgent("Müşteri temsilci istedi", senderId, text, product?.adName);
     }
     return;
   }
 
-  // Rule-based didn't match → AI (tek yanıt)
+  // 5) Kural/ürün kartı eşleşmedi → AI (tek yanıt)
   const aiReply = await askAI(text, product, history);
   const reply = aiReply || getWhatsAppRedirect(); // AI başarısızsa tek WhatsApp yönlendirmesi
   await sendMessage(senderId, reply);
-  await saveState(senderId, state, lastAdCode, history, text, reply);
+  await saveState(senderId, state, lastAdCode, history, text, reply, { currentProductCode, pendingBrand });
 
   if (!aiReply) {
     await notifyAgent("Müşteri (AI başarısız, fallback)", senderId, text, product?.adName);
-  } else if (/temsilci|yönlendir/i.test(aiReply)) {
-    await notifyAgent("Müşteri (AI yönlendirme)", senderId, text, product?.adName);
+  } else if (/temsilci|yönlendir|whatsapp/i.test(aiReply)) {
+    await notifyAgent("Alan dışı soru → temsilciye aktarıldı", senderId, text, product?.adName);
   }
 }
 
-/** Konuşma durumunu kaydet (geçmiş + son mesaj bilgisi tek seferde) */
-async function saveState(senderId, state, lastAdCode, history, userText, assistantText) {
+/** Konuşma durumunu kaydet (geçmiş + ürün bağlamı tek seferde) */
+async function saveState(senderId, state, lastAdCode, history, userText, assistantText, extra = {}) {
   await setUserState(senderId, {
     lastAdCode,
+    // metinden çözülen ürün bağlamı + belirsiz marka (sonraki turda "fiyatı ne kadar" doğru ürüne gitsin)
+    currentProductCode: extra.currentProductCode ?? state.currentProductCode ?? null,
+    pendingBrand: extra.pendingBrand ?? null,
     history: [
       ...history.slice(-6),
       { role: "user", content: userText },

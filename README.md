@@ -8,6 +8,8 @@ Meta Business Manager reklamlarından gelen **Messenger ve Instagram DM** mesajl
 ## Özellikler
 
 - ✅ Excel'deki ürün verisine göre **fiyat, ödeme, ölçü, adres** sorularını anında yanıtlar
+- ✅ Müşterinin yazdığı **ürün adını metinden tanır** ("rosita koltuk" = "Rosita koltuk takımı"); reklam bağlamından bağımsız doğru ürünü cevaplar, belirsiz isimde netleştirme sorar (`lib/catalog.js`)
+- ✅ Fiyat listesi ve AI prompt'u **tek kaynaktan** (products.json) üretilir — veri/cevap uyumsuzluğu oluşmaz
 - ✅ Bilinmeyen soruları **Deepseek AI** (OpenRouter) ile anlayıp yanıtlar
 - ✅ Fiyatı "canlı temsilci" olan ürünler için otomatik yönlendirme
 - ✅ Canlı temsilci taleplerini **Telegram**'a bildirir
@@ -18,12 +20,17 @@ Meta Business Manager reklamlarından gelen **Messenger ve Instagram DM** mesajl
 
 ```
 Reklam → Messenger/IG DM → Meta Webhook → Vercel /api/webhook
-                              ├─ 1. Reklam kodu → ürün eşleştir
+                              ├─ 1. Ürün bağlamı: metinde anılan ürün (lib/catalog.js)
+                              │    > önceki turun ürünü > reklam kodu
+                              │    Belirsiz marka ("rosita") → "hangisi?" netleştirme sorusu
                               ├─ 2. Kural tabanlı yanıt (fiyat/ödeme/ölçü/adres/temsilci)
                               ├─ 3. Eşleşmezse → OpenRouter Deepseek AI
+                              │    (fiyat listesi + konsept içerikleri products.json'dan üretilir)
                               ├─ 4. Temsilci gerekli → Telegram bildirimi
                               └─ 5. Graph API ile yanıt gönder
 ```
+
+**Testler:** `node scripts/test-product-matching.mjs` (ürün tanıma matrisi) · `DRY_RUN=true node scripts/test-dryrun.mjs` · `DRY_RUN=true node scripts/test-extra.mjs`
 
 ## Kurulum
 
