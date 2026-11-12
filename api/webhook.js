@@ -132,7 +132,7 @@ async function handleMessage(senderId, text, referralRef) {
   // İŞ KURALI (2026-10-11): Konsept ürünü (Rosita/Olivia Konsept — adı "konsept" içeren
   // her ürün) hakkında selamlama dışındaki TÜM sorular canlı temsilciye yönlendirilir.
   // Bot fiyat/içerik/detay vermez; Telegram'a da temsilci bildirimi düşer.
-  if (intent !== "greeting" && isKonseptProduct(product)) {
+  if (intent !== "greeting" && intent !== "hours" && isKonseptProduct(product)) {
     const redir = getWhatsAppRedirect();
     await sendMessage(senderId, redir);
     await saveState(senderId, state, lastAdCode, history, text, redir, { currentProductCode, pendingBrand });
